@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
-import httpx
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -77,28 +76,22 @@ async def scan_file(file: UploadFile = File(...)):
 
 @app.post("/api/3d/generate")
 async def generate_3d(file: UploadFile = File(...)):
-    api_key = os.getenv("STABILITY_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=503, detail="STABILITY_API_KEY is not configured")
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Upload an image file")
     data = await file.read()
     if len(data) > 10 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Maximum image size is 10 MB")
-    async with httpx.AsyncClient(timeout=180) as client:
-        response = await client.post(
-            "https://api.stability.ai/v2beta/3d/stable-fast-3d",
-            headers={"Authorization": f"Bearer {api_key}", "Accept": "application/octet-stream"},
-            files={"image": (file.filename or "input.png", data, file.content_type)},
-            data={"texture_resolution": "1024"},
-        )
-    if response.status_code >= 400:
-        raise HTTPException(status_code=502, detail=f"Stable Fast 3D error: {response.text[:500]}")
     job_id = str(uuid.uuid4())
     work = Path(tempfile.gettempdir()) / f"myservice-{job_id}"
     work.mkdir(parents=True, exist_ok=True)
     glb_path, fbx_path = work / "model.glb", work / "model.fbx"
-    glb_path.write_bytes(response.content)
+    input_path = work / Path(file.filename or "input.png").name
+    input_path.write_bytes(data)
+    result = subprocess.run(["python", "/opt/TripoSR/run.py", str(input_path), "--output-dir", str(work), "--model-save-format", "glb", "--bake-texture"], capture_output=True, text=True, timeout=300)
+    candidates = list(work.rglob("*.glb"))
+    if result.returncode != 0 or not candidates:
+        raise HTTPException(status_code=500, detail=f"TripoSR generation failed: {result.stderr[-500:]}")
+    candidates[0].replace(glb_path)
     script = BASE_DIR / "export_fbx.py"
     result = subprocess.run(["blender", "--background", "--python", str(script), "--", str(glb_path), str(fbx_path)], capture_output=True, text=True, timeout=120)
     if result.returncode != 0 or not fbx_path.exists():
