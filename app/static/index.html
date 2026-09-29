@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>myservice · Trellix</title>
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;color:#e8eef7;background:#10151d}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 85% 0,#193756 0,#10151d 42%)}main{max-width:960px;margin:auto;padding:48px 20px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}.brand{font-size:24px;font-weight:750}.tag{color:#8ea5bc;font-size:13px}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}@media(max-width:700px){.grid{grid-template-columns:1fr}}.card{background:#18212c;border:1px solid #2a3a4c;border-radius:16px;padding:24px;box-shadow:0 12px 35px #0003}h1{font-size:34px;margin:0 0 10px}h2{font-size:18px;margin:0 0 18px}p{color:#9eb0c2;line-height:1.5}.status{display:flex;align-items:center;gap:10px;margin:16px 0 24px}.dot{width:10px;height:10px;border-radius:50%;background:#f1b84b}.dot.ok{background:#42d392}label{display:block;color:#9eb0c2;font-size:13px;margin:15px 0 7px}input,select,button{width:100%;padding:12px;border-radius:9px;border:1px solid #34495e;background:#101820;color:#eef5fc;font:inherit}button{margin-top:16px;background:#2f86e8;border:0;cursor:pointer;font-weight:650}button:hover{background:#4399f0}.result{white-space:pre-wrap;margin-top:18px;color:#c9d8e7;min-height:24px}.metric{display:flex;justify-content:space-between;border-bottom:1px solid #293847;padding:13px 0;color:#9eb0c2}.metric b{color:#e8eef7}
+  </style>
+</head>
+<body><main>
+  <div class="top"><div class="brand">myservice / Trellix</div><div class="tag">security console</div></div>
+  <div class="grid"><section class="card"><h1>Проверка объекта</h1><p>Отправьте URL, хеш или текст на анализ. В demo-режиме данные не уходят во внешний сервис.</p>
+    <label for="type">Тип объекта</label><select id="type"><option value="text">Текст</option><option value="url">URL</option><option value="hash">Хеш</option></select>
+    <label for="target">Значение</label><input id="target" placeholder="Введите значение для проверки">
+    <button onclick="scan()">Проверить</button><div id="result" class="result"></div>
+  </section><aside class="card"><h2>Состояние системы</h2><div id="status">Загрузка…</div></aside></div>
+</main><script>
+async function scan(){const result=document.querySelector('#result');result.textContent='Проверка…';const r=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target:document.querySelector('#target').value,target_type:document.querySelector('#type').value})});result.textContent=JSON.stringify(await r.json(),null,2)}
+async function load(){const r=await fetch('/api/status');const s=await r.json();document.querySelector('#status').innerHTML=`<div class="status"><span class="dot ${s.mode==='connected'?'ok':''}"></span>${s.mode==='connected'?'Trellix подключён':'Demo mode'}</div><div class="metric"><span>Сервис</span><b>${s.service}</b></div><div class="metric"><span>GPU</span><b>${s.gpu}</b></div><div class="metric"><span>Провайдер</span><b>${s.provider}</b></div>`}load();
+</script></body></html>

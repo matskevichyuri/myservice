@@ -1,0 +1,19 @@
+services:
+  myservice:
+    build: .
+    container_name: myservice
+    ports:
+      - "8000:8000"
+    environment:
+      TRELLIX_API_URL: ${TRELLIX_API_URL:-}
+      TRELLIX_API_TOKEN: ${TRELLIX_API_TOKEN:-}
+      GPU_NAME: "NVIDIA GeForce RTX 5070 Ti"
+    restart: unless-stopped
+    # GPU доступен контейнеру после установки nvidia-container-toolkit на сервере.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
