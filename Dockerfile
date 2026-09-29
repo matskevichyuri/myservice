@@ -8,6 +8,7 @@ RUN git clone --depth 1 https://github.com/VAST-AI-Research/TripoSR.git /opt/Tri
     && pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu124 \
     && sed '/torchmcubes/d' /opt/TripoSR/requirements.txt > /tmp/triposr-requirements.txt \
     && pip install --no-cache-dir -r /tmp/triposr-requirements.txt \
+    && pip install --no-cache-dir onnxruntime-gpu \
     && pip install --no-cache-dir scikit-build-core ninja cmake pybind11 \
     && git clone --depth 1 https://github.com/tatsy/torchmcubes.git /tmp/torchmcubes \
     && sed -i 's/lerp(/lerp_ts(/g' /tmp/torchmcubes/cxx/helper_math.h \
