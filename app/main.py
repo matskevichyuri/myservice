@@ -96,7 +96,8 @@ async def generate_3d(file: UploadFile = File(...)):
     script = BASE_DIR / "export_fbx.py"
     result = subprocess.run(["blender", "--background", "--python", str(script), "--", str(glb_path), str(fbx_path)], capture_output=True, text=True, timeout=120)
     if result.returncode != 0 or not fbx_path.exists():
-        raise HTTPException(status_code=500, detail="Blender FBX conversion failed")
+        diagnostics = (result.stderr or result.stdout or "no output")[-1500:]
+        raise HTTPException(status_code=500, detail=f"Blender FBX conversion failed (exit {result.returncode}): {diagnostics}")
     return {"id": job_id, "format": "fbx", "download": f"/api/3d/{job_id}/download", "size": fbx_path.stat().st_size}
 
 
