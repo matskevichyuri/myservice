@@ -7,7 +7,7 @@ RUN git clone --depth 1 https://github.com/VAST-AI-Research/TripoSR.git /opt/Tri
     && pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu124 \
     && sed '/torchmcubes/d' /opt/TripoSR/requirements.txt > /tmp/triposr-requirements.txt \
     && pip install --no-cache-dir -r /tmp/triposr-requirements.txt \
-    && pip install --no-cache-dir scikit-build-core ninja cmake \
+    && pip install --no-cache-dir scikit-build-core ninja cmake pybind11 \
     && pip install --no-cache-dir --no-build-isolation git+https://github.com/tatsy/torchmcubes.git
 COPY app ./app
 ENV GPU_NAME="NVIDIA GeForce RTX 5070 Ti"
