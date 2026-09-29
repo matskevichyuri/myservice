@@ -13,8 +13,11 @@
     <label for="type">Тип объекта</label><select id="type"><option value="text">Текст</option><option value="url">URL</option><option value="hash">Хеш</option></select>
     <label for="target">Значение</label><input id="target" placeholder="Введите значение для проверки">
     <button onclick="scan()">Проверить</button><div id="result" class="result"></div>
+    <h2 style="margin-top:32px">Изображение → FBX</h2><p>Загрузите изображение предмета. Stable Fast 3D создаст GLB, Blender автоматически конвертирует его в FBX.</p>
+    <input id="image" type="file" accept="image/*"><button onclick="generate3d()">Создать FBX</button><div id="modelResult" class="result"></div>
   </section><aside class="card"><h2>Состояние системы</h2><div id="status">Загрузка…</div></aside></div>
 </main><script>
 async function scan(){const result=document.querySelector('#result');result.textContent='Проверка…';const r=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target:document.querySelector('#target').value,target_type:document.querySelector('#type').value})});result.textContent=JSON.stringify(await r.json(),null,2)}
+async function generate3d(){const f=document.querySelector('#image').files[0],out=document.querySelector('#modelResult');if(!f){out.textContent='Выберите изображение';return}out.textContent='Генерация модели…';const d=new FormData();d.append('file',f);const r=await fetch('/api/3d/generate',{method:'POST',body:d}),j=await r.json();out.innerHTML=j.download?`Готово: <a href="${j.download}">скачать FBX</a>`:JSON.stringify(j)}
 async function load(){const r=await fetch('/api/status');const s=await r.json();document.querySelector('#status').innerHTML=`<div class="status"><span class="dot ${s.mode==='connected'?'ok':''}"></span>${s.mode==='connected'?'Trellix подключён':'Demo mode'}</div><div class="metric"><span>Сервис</span><b>${s.service}</b></div><div class="metric"><span>GPU</span><b>${s.gpu}</b></div><div class="metric"><span>Провайдер</span><b>${s.provider}</b></div>`}load();
 </script></body></html>

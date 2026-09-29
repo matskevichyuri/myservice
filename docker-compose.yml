@@ -8,6 +8,7 @@ services:
       TRELLIX_API_URL: ${TRELLIX_API_URL:-}
       TRELLIX_API_TOKEN: ${TRELLIX_API_TOKEN:-}
       GPU_NAME: "NVIDIA GeForce RTX 5070 Ti"
+      STABILITY_API_KEY: ${STABILITY_API_KEY:-}
     restart: unless-stopped
     # GPU доступен контейнеру после установки nvidia-container-toolkit на сервере.
     deploy:

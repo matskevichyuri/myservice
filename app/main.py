@@ -1,9 +1,12 @@
 import os
+import subprocess
+import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+import httpx
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -70,3 +73,42 @@ async def scan_file(file: UploadFile = File(...)):
         "verdict": "unknown" if not trellix_configured() else "pending",
         "message": "Demo mode: file was received but not sent to Trellix.",
     }
+
+
+@app.post("/api/3d/generate")
+async def generate_3d(file: UploadFile = File(...)):
+    api_key = os.getenv("STABILITY_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="STABILITY_API_KEY is not configured")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Upload an image file")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Maximum image size is 10 MB")
+    async with httpx.AsyncClient(timeout=180) as client:
+        response = await client.post(
+            "https://api.stability.ai/v2beta/3d/stable-fast-3d",
+            headers={"Authorization": f"Bearer {api_key}", "Accept": "application/octet-stream"},
+            files={"image": (file.filename or "input.png", data, file.content_type)},
+            data={"texture_resolution": "1024"},
+        )
+    if response.status_code >= 400:
+        raise HTTPException(status_code=502, detail=f"Stable Fast 3D error: {response.text[:500]}")
+    job_id = str(uuid.uuid4())
+    work = Path(tempfile.gettempdir()) / f"myservice-{job_id}"
+    work.mkdir(parents=True, exist_ok=True)
+    glb_path, fbx_path = work / "model.glb", work / "model.fbx"
+    glb_path.write_bytes(response.content)
+    script = BASE_DIR / "export_fbx.py"
+    result = subprocess.run(["blender", "--background", "--python", str(script), "--", str(glb_path), str(fbx_path)], capture_output=True, text=True, timeout=120)
+    if result.returncode != 0 or not fbx_path.exists():
+        raise HTTPException(status_code=500, detail="Blender FBX conversion failed")
+    return {"id": job_id, "format": "fbx", "download": f"/api/3d/{job_id}/download", "size": fbx_path.stat().st_size}
+
+
+@app.get("/api/3d/{job_id}/download")
+def download_3d(job_id: str):
+    path = Path(tempfile.gettempdir()) / f"myservice-{job_id}" / "model.fbx"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Model not found or expired")
+    return FileResponse(path, media_type="application/octet-stream", filename=f"{job_id}.fbx")
