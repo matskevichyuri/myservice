@@ -87,7 +87,7 @@ async def generate_3d(file: UploadFile = File(...)):
     glb_path, fbx_path = work / "model.glb", work / "model.fbx"
     input_path = work / Path(file.filename or "input.png").name
     input_path.write_bytes(data)
-    result = subprocess.run(["xvfb-run", "-a", "-s", "-screen 0 1024x768x24", "python", "/opt/TripoSR/run.py", str(input_path), "--output-dir", str(work), "--model-save-format", "glb", "--bake-texture"], capture_output=True, text=True, timeout=300)
+    result = subprocess.run(["xvfb-run", "-a", "-s", "-screen 0 1024x768x24", "python", "/opt/TripoSR/run.py", str(input_path), "--output-dir", str(work), "--model-save-format", "glb"], capture_output=True, text=True, timeout=300)
     candidates = list(work.rglob("*.glb"))
     if result.returncode != 0 or not candidates:
         diagnostics = (result.stderr or result.stdout or "no output")[-1500:]

@@ -13,7 +13,7 @@
     <label for="type">Тип объекта</label><select id="type"><option value="text">Текст</option><option value="url">URL</option><option value="hash">Хеш</option></select>
     <label for="target">Значение</label><input id="target" placeholder="Введите значение для проверки">
     <button onclick="scan()">Проверить</button><div id="result" class="result"></div>
-    <h2 style="margin-top:32px">TripoSR: изображение → FBX</h2><p>Загрузите изображение предмета. TripoSR работает локально на GPU сервера, API-ключ не нужен. Blender автоматически конвертирует GLB в FBX.</p>
+    <h2 style="margin-top:32px">TripoSR: изображение → FBX</h2><p>Загрузите изображение предмета. TripoSR работает локально на GPU сервера, API-ключ не нужен. Модель создаётся с vertex colors, затем Blender конвертирует GLB в FBX.</p>
     <input id="image" type="file" accept="image/*"><button onclick="generate3d()">Создать FBX</button><div id="modelResult" class="result"></div>
   </section><aside class="card"><h2>Состояние системы</h2><div id="status">Загрузка…</div></aside></div>
 </main><script>
