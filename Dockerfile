@@ -9,7 +9,9 @@ RUN git clone --depth 1 https://github.com/VAST-AI-Research/TripoSR.git /opt/Tri
     && sed '/torchmcubes/d' /opt/TripoSR/requirements.txt > /tmp/triposr-requirements.txt \
     && pip install --no-cache-dir -r /tmp/triposr-requirements.txt \
     && pip install --no-cache-dir scikit-build-core ninja cmake pybind11 \
-    && pip install --no-cache-dir --no-build-isolation git+https://github.com/tatsy/torchmcubes.git
+    && git clone --depth 1 https://github.com/tatsy/torchmcubes.git /tmp/torchmcubes \
+    && sed -i 's/\\blerp(/lerp_ts(/g' /tmp/torchmcubes/cxx/helper_math.h \
+    && pip install --no-cache-dir --no-build-isolation /tmp/torchmcubes
 COPY app ./app
 ENV GPU_NAME="NVIDIA GeForce RTX 5070 Ti"
 EXPOSE 8000
