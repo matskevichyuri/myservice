@@ -3,12 +3,14 @@ services:
     build: .
     container_name: myservice
     ports:
-      - "8000:8000"
+      - "8698:8000"
     environment:
       TRELLIX_API_URL: ${TRELLIX_API_URL:-}
       TRELLIX_API_TOKEN: ${TRELLIX_API_TOKEN:-}
       GPU_NAME: "NVIDIA GeForce RTX 5070 Ti"
     restart: unless-stopped
+    volumes:
+      - triposr-cache:/root/.cache/huggingface
     # GPU доступен контейнеру после установки nvidia-container-toolkit на сервере.
     deploy:
       resources:
@@ -17,3 +19,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+volumes:
+  triposr-cache:
