@@ -90,7 +90,8 @@ async def generate_3d(file: UploadFile = File(...)):
     result = subprocess.run(["xvfb-run", "-a", "-s", "-screen 0 1024x768x24", "python", "/opt/TripoSR/run.py", str(input_path), "--output-dir", str(work), "--model-save-format", "glb", "--bake-texture"], capture_output=True, text=True, timeout=300)
     candidates = list(work.rglob("*.glb"))
     if result.returncode != 0 or not candidates:
-        raise HTTPException(status_code=500, detail=f"TripoSR generation failed: {result.stderr[-500:]}")
+        diagnostics = (result.stderr or result.stdout or "no output")[-1500:]
+        raise HTTPException(status_code=500, detail=f"TripoSR generation failed (exit {result.returncode}): {diagnostics}")
     candidates[0].replace(glb_path)
     script = BASE_DIR / "export_fbx.py"
     result = subprocess.run(["blender", "--background", "--python", str(script), "--", str(glb_path), str(fbx_path)], capture_output=True, text=True, timeout=120)
