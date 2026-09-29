@@ -5,7 +5,7 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN git clone --depth 1 https://github.com/VAST-AI-Research/TripoSR.git /opt/TripoSR \
-    && pip install --no-cache-dir torch==2.7.0 torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128 \
+    && pip install --no-cache-dir --pre torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu128 \
     && sed -e '/torchmcubes/d' -e '/torch/d' /opt/TripoSR/requirements.txt > /tmp/triposr-requirements.txt \
     && pip install --no-cache-dir -r /tmp/triposr-requirements.txt \
     && pip install --no-cache-dir onnxruntime-gpu \
